@@ -1,0 +1,36 @@
+from pytube import YouTube
+import os
+import telebot
+from datetime import datetime
+from logger import login
+
+
+
+TOKEN = "TOKEN"
+
+bot = telebot.TeleBot(TOKEN)
+
+@bot.message_handler(content_types=["text"])
+def download(message):
+    try:
+        yt=YouTube(message.text)
+        audio = yt.streams.filter(only_audio=True).first()
+        file = audio.download("PATH")
+        for file in os.listdir("PATH"):
+            if file.endswith(".mp4"):
+                vid = (os.path.join("PATH", file))
+        bot.send_audio(message.chat.id, audio=open(vid, 'rb'))
+        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
+        os.remove(vid)
+        print("[Success]: Audio " + message.text + " downloaded successfully at ", datetime.now().time())
+    except:
+        #bot.send_message(chat_id=message.chat.id, "Couldn't download audio!")
+        print("[Error]: Error occured while downloading audio "+ message.text + " at ", datetime.now().time())
+        
+while True:
+    try:
+        bot.polling(none_stop=True)
+    except:
+        print("Connection problems")
+        #login()
+
